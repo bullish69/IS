@@ -1,112 +1,75 @@
 import hashlib
-from binarytree import Node
 
 
 def hash(val):
     return hashlib.sha256(val.encode('utf-8')).hexdigest()
+# hash('a')
 
 
-def build_tree(tree, r):
-    root = Node(r)
-
-    if tree[r][0] != None:
-        root.left = build_tree(tree, tree[r][0])
-
-    if tree[r][1] != None:
-        root.right = build_tree(tree, tree[r][1])
-
-    return root
+ls = ['1', '2', '3', '4', '5']
 
 
-def without_hash(input_string):
+def merkel_tree_without_hash(ls):
+    temp = ls.copy()
     tree = {}
-    tree_list = []
-    for i in input_string:
-        tree[i] = (None, None)
-    # print(tree)
-
-    temp1 = input_string.copy()
-
-    if len(input_string) % 2 == 1:  # odd
-        last = temp1.pop(-1)
-    while len(temp1) > 1:
+    last = ""
+    if len(temp) % 2 == 1:  # if there are odd terms in the list
+        last = temp.pop()
+    while(len(temp) > 1):
         temp2 = []
-        for i in range(0, len(temp1), 2):
-            left = temp1[i]
-            right = temp1[i+1]
-            h = left+right
-            temp2.append(h)
-
-            tree[h] = (left, right)
-
-        tree_list.append(temp1)
-        temp1 = temp2.copy()
-
-       # if last is a null string
-
-    tree_list.append(temp1)
+        for i in range(0, len(temp), 2):
+            left, right = temp[i], temp[i+1]
+            node = left+right
+            temp2.append(node)
+            tree[node] = [left, right]
+        # after one iteration through list set temp = temp2
+        temp = temp2
 
     # print(tree)
+    if last == "":  # if last is empty string then original list had even terms
+        return node, tree  # return node (merkel root) and tree (dictionary)
 
-    if last != '':
-        tree_list.append([last])
-        odd = tree_list[-2][0]+tree_list[-1][0]
-        merkel_root = odd
-
-    else:
-        merkel_root = temp1
-
-    tree[merkel_root] = (tree_list[-2][0], tree_list[-1][0])
-    tree_list.append([merkel_root])
-
-    # print(tree)
-    return merkel_root, tree
+    # if  if there are odd terms in the list then last will have some value
+    root = node+last
+    tree[root] = [node, last]
+    return root, tree
 
 
-def merkel_tree(input_string):
+merkel_tree_without_hash(ls)
+
+
+def merkel_tree(ls):
+    temp = ls.copy()
     tree = {}
-    tree_list = []
-    for i in input_string:
-        tree[i] = (None, None)
-    # print(tree)
-
-    temp1 = input_string.copy()
-
-    if len(input_string) % 2 == 1:  # odd
-        last = temp1.pop(-1)
-    while len(temp1) > 1:
+    last = ""
+    if len(temp) % 2 == 1:  # if there are odd terms in the list
+        last = temp.pop()
+    while(len(temp) > 1):
         temp2 = []
-        for i in range(0, len(temp1), 2):
-            left = temp1[i]
-            right = temp1[i+1]
-            h = hash(left+right)
-            temp2.append(h)
-
-            tree[h] = (left, right)
-
-        tree_list.append(temp1)
-        temp1 = temp2.copy()
-
-       # if last is a null string
-
-    tree_list.append(temp1)
+        for i in range(0, len(temp), 2):
+            left, right = temp[i], temp[i+1]
+            node = hash(left+right)
+            temp2.append(node)
+            tree[node] = [left, right]
+        # after one iteration through list set temp = temp2
+        temp = temp2
 
     # print(tree)
+    if last == "":  # if last is empty string then original list had even terms
+        return node, tree  # return node (merkel root) and tree (dictionary)
 
-    if last != '':
-        tree_list.append([last])
-        odd = hash(tree_list[-2][0]+tree_list[-1][0])
-        merkel_root = odd
-
-    else:
-        merkel_root = temp1
-
-    tree[merkel_root] = (tree_list[-2][0], tree_list[-1][0])
-    tree_list.append([merkel_root])
-
-    # print(tree)
-    return merkel_root, tree
+    # if  if there are odd terms in the list then last will have some value
+    root = hash(node+last)
+    tree[root] = [node, last]
+    return root, tree
 
 
-merkelroot, merkeltree = merkel_tree(['1', '2', '3', '4', '5'])
-merkeltree
+m_root, m_tree = merkel_tree(ls)
+
+print("merkel root: ", m_root)
+
+for node, children in m_tree.items():
+    print(node, ":")
+    print("L -> ", children[0])
+    print("R -> ", children[1])
+    print('\n')
