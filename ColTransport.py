@@ -1,126 +1,75 @@
-import numpy as np
-
-def getKeyValues(key):
-    keylist = list(key)
-    sortkeylist = sorted(key)
-    visited = []
-
-    for i, char in enumerate(sortkeylist):
-        visited.append([char, i+1])
-
-    sahi_keyvalue = []
-
-    for i in key:
-        for char in visited:
-            if char[0] == i:
-                sahi_keyvalue.append(char)
-                visited.pop(visited.index(char))
-                break
-
-    return sahi_keyvalue
-
-
-def add_X(pt, key):
-    n_pt = len(pt)
-    n_key = len(key)
-
-    if n_pt == n_key:
-        n_pt = len(pt)
-
-    else:
-        k = n_key - n_pt % n_key
-        for i in range(k):
-            pt += 'X'
-        n_pt = len(pt)
-
-    mat = []
-
-    while pt != "":
-        temp = list(pt[:n_key])
-        mat.append(temp)
-        pt = pt[n_key:]
-
-    return mat
-
 # Encryption
 
+s = input("Enter plain text : ")
+k = input("Enter the key : ")
 
-def encryption(mat, key, keyValuelist):
-    sortedKey = sorted(keyValuelist, key=lambda x: x[1])
 
-    ct = []
-    for i in sortedKey:
-        ind = keyValuelist.index(i)
+def encrypt(s, k):
+    sortedk = sorted(k)
+    lk = len(k)
+    ls = len(s)
+    k = list(k)
+    idx = []
+    for i in range(lk):
+        idx.append(k.index(sortedk[i]))
+        k[k.index(sortedk[i])] = "#"
+
+    table = []
+    i = 0
+    while i < ls:
         temp = []
-        for row in mat:
-            temp.append(row[ind])
-        ct.append(temp)
+        for j in range(lk):
+            if i < ls:
+                temp.append(s[i])
+            else:
+                temp.append("0")
+            i += 1
+        table.append(temp)
 
-    ct1 = ''
-    for row in ct:
-        temp = ''
-        ct1 += temp.join(row)
-
-    return ct1
-
-
-def decryption(ct, key, keyValuelist):
-    n_key = len(key)
-    n_ct = len(ct)
-
-    n_rows = n_ct//n_key
-
-    ct = list(ct)
-    ct_list = []
-    while ct != []:
-        ct_list.append(ct[:n_rows])
-        ct = ct[n_rows:]
-
-    sortedkeyvalue = sorted(keyValuelist, key=lambda x: x[1])
-
-    mat = [[] for _ in range(n_key)]
-
-    for i, text in enumerate(ct_list):
-        for row in keyValuelist:
-            if row[1] - 1 == i:
-                ind = keyValuelist.index(row)
-                mat[ind] = text
-                break
-
-    # print(mat)
-
-    newmat_arr = np.array(list(mat))
-    # print(newmat_arr)
-    transpose = newmat_arr.T
-    transpose_list = transpose.tolist()
-
-    pt = ''
-    for row in transpose_list:
-        print(row)
-        pt += ''.join(row)
-
-    return pt
+    ans = ""
+    for i in range(lk):
+        col = idx[i]
+        for row in range(len(table)):
+            ans += table[row][col]
+    return ans
 
 
-pt = input("Enter Plain Text :")
-key = input("Enter a Key :")
+print("The encyrpted text is :", encrypt(s, k))
+print("The double encyrpted text is :", encrypt(encrypt(s, k), k))
 
-print('The plain text is:', pt)
-print('the keyword is:', key)
 
-keyvalue = getKeyValues(key)
-print('The value of characters in key is:')
-print(keyvalue)
+# Decryption
 
-print('\n\n')
-mat = add_X(pt, key)
-print("The matrix is:")
-print(key)
-for row in mat:
-    print(row)
+s = input("Enter cipher text : ")
+k = input("Enter the key : ")
 
-ct = encryption(mat, key, keyvalue)
-print('After Encryption\nThe cipher text is:', ct, '\n')
 
-pt = decryption(ct, key, keyvalue)
-print('After Decryption\nThe plain text is:', pt)
+def decrypt(s, k):
+    ls = len(s)
+    lk = len(k)
+    sortedk = sorted(k)
+    k = list(k)
+    idx = []
+    for i in range(lk):
+        idx.append(k.index(sortedk[i]))
+        k[k.index(sortedk[i])] = "#"
+
+    cols = lk
+    rows = ls//lk
+    table = []
+    for i in range(rows):
+        table.append(["0"]*cols)
+    x = 0
+    for i in range(cols):
+        curridx = idx[i]
+        for j in range(rows):
+            table[j][curridx] = s[x]
+            x += 1
+    ans = ""
+    for i in table:
+        ans += "".join(filter(lambda x: x != "0", i))
+    return ans
+
+
+print("The decyrpted text is :", decrypt(s, k))
+print("The double decyrpted text is :", decrypt(decrypt(s, k), k))
