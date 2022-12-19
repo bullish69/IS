@@ -1,7 +1,4 @@
 import numpy as np
-# Columnar
-# getting values for the character in the key
-
 
 def getKeyValues(key):
     keylist = list(key)
