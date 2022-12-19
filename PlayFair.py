@@ -1,118 +1,102 @@
-def matrix(key):
-    matrix = []
-    for e in key.lower():
-        if e not in matrix:
-            matrix.append(e)
-    alphabet = "abcdefghiklmnopqrstuvwxyz"
+def add_X(pt):
+  ind = 0
+  while (ind < len(pt)):
+    l1 = pt[ind]
+    if ind == len(pt) - 1:
+      if len(pt) % 2 != 0:
+        pt = pt + 'X'
+        ind += 2
+      else:
+        ind += 1
+      continue
+    
+    l2 = pt[ind+1]
+    if l1 == l2:
+      pt = pt[:ind+1] + 'X' + pt[ind+1:]
+    ind += 1
+  return pt
 
-    for e in alphabet:
-        if e not in matrix:
-            matrix.append(e)
+def create_matrix(key):
+  mat = [[0 for i in range(5)] for j in range(5)]
+  row = 0
+  col = 0
+  letters_added = []
 
-    leng = len(matrix)
-    mat = []
-    count = 0
-    i = 0
-    while count < 5:
-        a = []
-        count2 = 0
+  # add the key to the matrix
+  for letter in key:
+    if letter not in letters_added:
+      mat[row][col] = letter
+      letters_added.append(letter)
+    else:
+      continue
+    
+    if col == 4:
+      col = 0
+      row += 1
+    else:
+      col += 1
+  
+  # add other letter in matrix A=65,....,Z=90
+  for letter in range(65,91):
+    if letter == 74: #letter is j which is equal to i so ignore
+      continue
+    
+    if chr(letter) not in letters_added:
+      letters_added.append(chr(letter))
+    
+  ind = 0
+  for i in range(5):
+    for j in range(5):
+      mat[i][j] = letters_added[ind]
+      ind += 1
+    
+  return mat
 
-        while count2 < 5:
-            a = a + [matrix[i]]
-            i = i + 1
-            count2 = count2 + 1
-        mat = mat + [a]
+def indexof(letter, mat):
+  if ord(letter) == 74:
+    letter = 'I'
+  
+  for row in range(5):
+    try:
+      col = mat[row].index(letter)
+      return (row, col)
+    except:
+      continue
 
-        count = count + 1
+def encryptdecrypt(pt, matrix, isDecrypt):
+  inc = 1
+  if isDecrypt:
+    inc = -1
+  
+  ct = ''
+  
+  for (i,j) in zip(pt[0::2], pt[1::2]):
+    r1, c1 = indexof(i, matrix)
+    r2, c2 = indexof(j, matrix)
 
-    return mat
-
-
-def spl(message_original):
-    message = []
-    for e in message_original:
-        message.append(e)
-
-    for unused in range(len(message)):
-        if " " in message:
-            message.remove(" ")
-
-    i = 0
-    for e in range(int(len(message) / 2)):
-        if message[i] == message[i + 1]:
-            if message[i] == 'x':
-                message.insert(i + 1, 'y')
-            else:
-                message.insert(i + 1, 'x')
-        i = i + 2
-
-    if len(message) % 2 == 1:
-        if message[len(message)-1] == 'x':
-            message.append('y')
-        else:
-            message.append("x")
-
-    i = 0
-    new = []
-    for x in range(1, int(len(message) / 2 + 1)):
-        new.append(message[i: i + 2])
-        i = i + 2
-    return new
-
-
-def fp(key_matrix, letter):
-    x = y = 0
-    for i in range(5):
-        for j in range(5):
-            if key_matrix[i][j] == letter:
-                x = i
-                y = j
-
-    return x, y
-
-
-def encrypt(message):
-    message = spl(message)
-    print(message)
-    # print(message)
-    key_matrix = matrix(input("Enter Key :"))
-    cipher = []
-    for e in message:
-        a = e[0]
-        b = e[1]
-        if e[0] == 'j':
-            a = 'i'
-        elif e[1] == 'j':
-            b = 'i'
-        p1, q1 = fp(key_matrix, a)
-        p2, q2 = fp(key_matrix, b)
-        if p1 == p2:
-            if q1 == 4:
-                q1 = -1
-            if q2 == 4:
-                q2 = -1
-            cipher.append(key_matrix[p1][q1 + 1])
-            cipher.append(key_matrix[p1][q2 + 1])
-        elif q1 == q2:
-            if p1 == 4:
-                p1 = -1
-            if p2 == 4:
-                p2 = -1
-            cipher.append(key_matrix[p1 + 1][q1])
-            cipher.append(key_matrix[p2 + 1][q2])
-        else:
-            cipher.append(key_matrix[p1][q2])
-            cipher.append(key_matrix[p2][q1])
-    return cipher
+    if c1 == c2:
+      ct += matrix[(r1+inc)%5][c1] + matrix[(r2+inc)%5][c2]
+    elif r1 == r2:
+      ct += matrix[r1][(c1+inc)%5] + matrix[r2][(c2+inc)%5]
+    else:
+      ct += matrix[r1][c2] + matrix[r2][c1]
+  
+  return ct
 
 
-e = encrypt(input("Enter Text:"))
-leng = len(e)
-co = 0
-st = ""
-while co != leng:
 
-    st = st + e[co]
-    co = co + 1
+pt = input("Enter pt(capital): ")
+key = input("Enter key(capital): ")
 
-print("Cipher Text : ", st)
+pt = add_X(pt)
+print("After adding X in required places\nThe plain text is:",pt,'\n')
+matrix = create_matrix(key=key)
+print("The  matrix is:")
+for row in matrix:
+  print(row)
+
+ct = encryptdecrypt(pt, matrix, isDecrypt=False)
+print("After Encryption\nThe cipher text is:",ct)
+
+pt = encryptdecrypt(ct , matrix, isDecrypt=True)
+print("After Decryption\nThe plain text is:",pt)
