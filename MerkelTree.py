@@ -1,75 +1,43 @@
 import hashlib
 
 
-def hash(val):
-    return hashlib.sha256(val.encode('utf-8')).hexdigest()
-# hash('a')
+class Node:
+    def __init__(self, data=None, left=None, right=None):
+        self.data = data
+        self.hash = hashlib.sha256(str(data).encode("utf-8")).hexdigest()
+        self.left = left
+        self.right = right
 
 
-ls = ['1', '2', '3', '4', '5']
+class MerkelTree:
+    def __init__(self, leaves):
+        self.root = Node(leaves)
+        open = [self.root]
+        while len(open):
+            node = open.pop(0)
+            data = node.data
+            half_data = len(data)//2
+            if half_data:
+                new_leaves = [Node(data[:half_data]), Node(data[half_data:])]
+                node.left = new_leaves[0]
+                node.right = new_leaves[1]
+                open.extend(new_leaves)
+
+    def print_tree(self):
+        open = [self.root]
+        while len(open):
+            node = open.pop(0)
+            print("")
+            print("Content: ", node.data)
+            print("Hash: ", node.hash)
+            new_right = node.right
+            new_left = node.left
+            if new_right is not None:
+                open = [new_right] + open
+            if new_left is not None:
+                open = [new_left] + open
 
 
-def merkel_tree_without_hash(ls):
-    temp = ls.copy()
-    tree = {}
-    last = ""
-    if len(temp) % 2 == 1:  # if there are odd terms in the list
-        last = temp.pop()
-    while(len(temp) > 1):
-        temp2 = []
-        for i in range(0, len(temp), 2):
-            left, right = temp[i], temp[i+1]
-            node = left+right
-            temp2.append(node)
-            tree[node] = [left, right]
-        # after one iteration through list set temp = temp2
-        temp = temp2
-
-    # print(tree)
-    if last == "":  # if last is empty string then original list had even terms
-        return node, tree  # return node (merkel root) and tree (dictionary)
-
-    # if  if there are odd terms in the list then last will have some value
-    root = node+last
-    tree[root] = [node, last]
-    return root, tree
-
-
-merkel_tree_without_hash(ls)
-
-
-def merkel_tree(ls):
-    temp = ls.copy()
-    tree = {}
-    last = ""
-    if len(temp) % 2 == 1:  # if there are odd terms in the list
-        last = temp.pop()
-    while(len(temp) > 1):
-        temp2 = []
-        for i in range(0, len(temp), 2):
-            left, right = temp[i], temp[i+1]
-            node = hash(left+right)
-            temp2.append(node)
-            tree[node] = [left, right]
-        # after one iteration through list set temp = temp2
-        temp = temp2
-
-    # print(tree)
-    if last == "":  # if last is empty string then original list had even terms
-        return node, tree  # return node (merkel root) and tree (dictionary)
-
-    # if  if there are odd terms in the list then last will have some value
-    root = hash(node+last)
-    tree[root] = [node, last]
-    return root, tree
-
-
-m_root, m_tree = merkel_tree(ls)
-
-print("merkel root: ", m_root)
-
-for node, children in m_tree.items():
-    print(node, ":")
-    print("L -> ", children[0])
-    print("R -> ", children[1])
-    print('\n')
+s = input("Enter the text : ")
+tree = MerkelTree(s.split())
+tree.print_tree()
