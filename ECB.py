@@ -1,86 +1,72 @@
-def ascii_to_binary(a):
-    # this will print a in binary
-    bnr = bin(a).replace('0b', '')
-    x = bnr[::-1]  # this reverses an array
-    while len(x) < 8:
-        x += '0'
-    bnr = x[::-1]
-    # print(bnr)
-    return bnr
+plain_text = input("Enter Plain Text :")
+key = input("Enter Key: ")
 
+def split_into_16(plain_text):
+    chunks = []
+    for i in range(0, len(plain_text), len(key)):
+        chunks.append(plain_text[i:i+len(key)])
 
-def binary_to_ascii(a):
-    a_rev = a[::-1]
-    val = 0
-    for i in range(len(a_rev)):
-        if a_rev[i] == '1':
-            val += 2**i
+    while len(chunks[-1])<16:
+        chunks[-1]+=' ' # append space ' ' to make the last string of 16 characters
+
+    return chunks
+
+split_into_16(plain_text)
+
+def string_to_bin(string):
+    bin_str = ''
+    for char in string:
+        bin_str += format(ord(char), '08b')
+    return bin_str
+
+def text_to_binary_list(plain_text):
+    # str_16 is a list containing strings of 16 characters each 
+    str_16 = split_into_16(plain_text)
+
+    # str_128 = list containing string representing 16*8 = 128 bits binary format of corresponding str_16 
+    str_128 = []
+    for s in str_16:
+        str_128.append(string_to_bin(s))
+
+    return str_128
+    
+text_to_binary_list(plain_text)
+
+def xor(X, Y):
+    val = ''
+    for x, y in zip(X, Y):
+        if x == y:
+            val+='0'
+        else:
+            val+='1'
     return val
 
+format(ord('a'), '08b')
+chr(int('01100001', 2))
 
-def left_shift(string, key):
-    # slicing the string into 2 parts at key value and then append it in new empty string
-    l = string[:key]
-    string = string[key:]
-    string += l
-    return string
-
-
-def encryption(pt, key, t):
-    # converting pt into blocks of 16 char
-    pt_block = []
-    while pt != "":
-        temp = pt[:16]
-        pt_block.append(temp)
-        pt = pt[16:]
-
-    print(pt_block)
-
-    # converting each block 1st into ascii value and that ascii value into binary 8 bits number
-    binary_pt = []
-    for i in range(len(pt_block)):
-        b = ''
-        for j in range(len(pt_block[i])):
-            asc = ord(pt_block[i][j])
-            binaryasc = ascii_to_binary(asc)
-            b += binaryasc
-        binary_pt.append(b)
-
-    # print(binary_pt)
-
-    # for appending 0s if len of binary string is not 128
-    if len(binary_pt[-1]) < 128:
-        size = 128 - len(binary_pt[-1])
-        for i in range(size):
-            binary_pt[-1] += '0'
-
-    print('binary pt', binary_pt)
-
-    ls_list = []
-    for i in binary_pt:
-        a = left_shift(i, t)
-        ls_list.append(a)
-
-    print('left shift list', ls_list)
-
-    ls_list = ''.join(ls_list)
-    print('left shift list', ls_list)
-
-    ct = ''
-
-    while ls_list != '':
-        temp = ls_list[:8]
-        br = binary_to_ascii(temp)
-        xor = br ^ key
-        ch = chr(xor)
-        ct += ch
-        ls_list = ls_list[8:]
-
-    print(ct)
-    return ct
+def encrypt_128(plain_text, key):
+    key_128 = string_to_bin(key)
+    bin_list = text_to_binary_list(plain_text)
+    xor_list = []
+    cipher_txt = ''
+    for ele in bin_list:
+        ''' take xor of element and key '''
+        xor_list.append(xor(ele, key_128))
 
 
-pt = input("Enter Plain Text: ")
-pt = pt.upper()
-ct = encryption(pt, 65, 2)
-print("The cipher text is:", ct)
+    ''' Now iterate ovr this XOR list '''
+    for str_128 in xor_list:
+        # print(str_128[:8])
+        ''' get nth 8 bits out of 128 bits '''
+        for i in range(0, 128, 8):
+            temp_8 = str_128[i:i+8]
+            ''' circular left shift on 8 bits'''
+            str_8 = temp_8[1:] + temp_8[0]
+
+            '''convert to char'''
+            cipher_txt += chr(int(str_8, 2))
+            # print(chr(int(str_8, 2)))
+            
+    return cipher_txt
+ct = encrypt_128(plain_text, key)
+print(ct)
