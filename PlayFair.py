@@ -75,7 +75,7 @@ def encrypt(message):
     message = spl(message)
     print(message)
     # print(message)
-    key_matrix = matrix(input("Enter Matrix :"))
+    key_matrix = matrix(input("Enter Key :"))
     cipher = []
     for e in message:
         a = e[0]
@@ -115,4 +115,4 @@ while co != leng:
     st = st + e[co]
     co = co + 1
 
-print(st)
+print("Cipher Text : ", st)
